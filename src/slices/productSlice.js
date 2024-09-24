@@ -34,7 +34,7 @@ export let getAllProduct = createAsyncThunk(
     }
 );
 
-  let deleteProduct=createAsyncThunk('delete/product',async (id) => {
+export  let deleteProduct=createAsyncThunk('delete/product',async (id) => {
     try {
         let res =await axios.delete(`${import.meta.env.VITE_API_URL}/delete/${id}`)
         return res.data
@@ -79,6 +79,18 @@ let productSlice = createSlice({
                 state.isLoading=false
                 state.error=action.error.message
                 state.products=[]
+            })
+            .addCase(deleteProduct.fulfilled,(state,action)=>{
+                state.error=null
+                state.isLoading=false
+                state.products=state.products.filter((id)=> id!==action.payload)
+            })
+            .addCase(deleteProduct.pending,(state)=>{
+                state.isLoading=true
+            })
+            .addCase(deleteProduct.rejected,(state,action)=>{
+                state.error=action.error.message
+                state.isLoading=false
             })
             
     }
