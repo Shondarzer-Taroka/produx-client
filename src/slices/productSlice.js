@@ -34,6 +34,8 @@ export let getAllProduct = createAsyncThunk(
     }
 );
 
+// delete product
+
 export  let deleteProduct=createAsyncThunk('delete/product',async (id) => {
     try {
         let res =await axios.delete(`${import.meta.env.VITE_API_URL}/delete/${id}`)
@@ -42,6 +44,43 @@ export  let deleteProduct=createAsyncThunk('delete/product',async (id) => {
         console.log(error);
     }
   })
+
+//   update product
+
+// export let updateProduct=createAsyncThunk('products/updateProduct',async ({id,productData}) => {
+//     try {
+//         console.log(id,productData);
+        
+//         let response=await axios.put(`${import.meta.env.VITE_API_URL}/update/${id}`,productData)
+//         return response.data
+//     } catch (error) {
+//         console.log(error);
+        
+//     }
+// })
+
+
+
+
+
+
+// UPDATE - Update a product by ID
+export const updateProduct = createAsyncThunk('products/updateProduct', async ({ id, productData }, { rejectWithValue }) => {
+    try {
+        // console.log(productData);
+        
+        let response=await axios.put(`${import.meta.env.VITE_API_URL}/update/${id}`,productData)
+        console.log(response.data);
+        
+        return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  });
+
+
+
+
 
 let productSlice = createSlice({
     name: "products",
@@ -61,8 +100,10 @@ let productSlice = createSlice({
                 state.error = action.payload || "Failed to post product";
             })
             .addCase(postProduct.fulfilled, (state, action) => {
+                // console.log(action.payload.data);
+                
                 state.isLoading = false;
-                state.products.push(action.payload);  // Push the new product to the state
+                state.products.push(action.payload.data);  // Push the new product to the state
             })
             .addCase(getAllProduct.fulfilled,(state,action)=>{
 
@@ -81,9 +122,13 @@ let productSlice = createSlice({
                 state.products=[]
             })
             .addCase(deleteProduct.fulfilled,(state,action)=>{
+                console.log(action.payload.data._id);
+                state.products=state.products.filter(product => product._id !== action.payload.data._id)
+                console.log(state.products);
+                
                 state.error=null
                 state.isLoading=false
-                state.products=state.products.filter((id)=> id!==action.payload)
+                
             })
             .addCase(deleteProduct.pending,(state)=>{
                 state.isLoading=true
@@ -91,6 +136,26 @@ let productSlice = createSlice({
             .addCase(deleteProduct.rejected,(state,action)=>{
                 state.error=action.error.message
                 state.isLoading=false
+            })
+            .addCase(updateProduct.pending,(state,action)=>{
+                console.log(action.payload);
+                state.isLoading=true
+                
+            })
+            .addCase(updateProduct.rejected,(state,action)=>{
+                console.log(action.payload);
+                
+            })
+            .addCase(updateProduct.fulfilled,(state,action)=>{
+                console.log(action.payload);
+                state.isLoading=false
+                state.error=null
+                const index =state.products.findIndex(product=> product._id === action.payload.product._id)
+                console.log(index);
+                
+                if (index !== -1) {
+                    state.products[index]=action.payload.product
+                }
             })
             
     }
